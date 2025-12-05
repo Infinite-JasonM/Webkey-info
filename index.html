@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webkey Token Staking Simulator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; }
+        
+        /* 커스텀 스크롤바 */
+        .table-container::-webkit-scrollbar { width: 8px; height: 8px; }
+        .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* 숫자 입력 화살표 제거 */
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+        
+        /* 조직도 연결선 효과 */
+        .org-connector::before {
+            content: '';
+            position: absolute;
+            top: -16px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            height: 16px;
+            background-color: #cbd5e1;
+            z-index: 0;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 p-4 md:p-8 text-slate-800">
+
+    <div class="max-w-7xl mx-auto space-y-16">
+        <!-- 헤더 -->
+        <header class="text-center py-6">
+            <h1 class="text-3xl md:text-5xl font-black text-indigo-900 tracking-tight">Webkey Staking <span class="text-indigo-600">Simulator</span></h1>
+            <p class="text-slate-500 mt-2 text-lg">Real-time Tokenomics & Compound Interest</p>
+        </header>
+
+        <!-- [NEW] 실시간 마켓 데이터 대시보드 (레이아웃 복구) -->
+        <div class="bg-slate-900 rounded-3xl p-6 text-white shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 -mr-16 -mt-16"></div>
+            
+            <!-- 수정됨: xl -> md 기준으로 복구하여 가로 배치 유지 -->
+            <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
+                <div class="flex items-center gap-4">
+                    <div class="p-3 bg-indigo-500/20 rounded-xl border border-indigo-500/50">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-200">Market Rates</h2>
+                        <p class="text-xs text-slate-400">실시간 환율 및 토큰 가격 자동 연동</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-4 justify-center md:justify-end w-full md:w-auto">
+                    <!-- USDT 가격 (업비트 연동) -->
+                    <div class="bg-slate-800 p-4 rounded-2xl border border-slate-700 min-w-[160px]">
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="text-xs text-slate-400 font-bold">UPBIT USDT</span>
+                            <span id="apiStatusUsdt" class="flex h-2 w-2 relative">
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-slate-500"></span>
+                            </span>
+                        </div>
+                        <div class="flex items-baseline gap-1 justify-end">
+                            <span class="text-sm text-slate-500">₩</span>
+                            <input type="number" id="usdtRateInput" value="1420" class="bg-transparent text-2xl font-black text-white w-20 focus:outline-none focus:border-b border-slate-500 text-right">
+                        </div>
+                    </div>
+
+                    <!-- Webkey 토큰 가격 (DexScreener 연동) -->
+                    <div class="bg-slate-800 p-4 rounded-2xl border border-indigo-500/50 min-w-[160px] shadow-[0_0_15px_rgba(99,102,241,0.3)]">
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="text-xs text-indigo-300 font-bold">WEBKEY PRICE</span>
+                            <span id="apiStatusToken" class="flex h-2 w-2 relative">
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-slate-500"></span>
+                            </span>
+                        </div>
+                        <div class="flex items-baseline gap-1 justify-end">
+                            <span class="text-sm text-slate-500">$</span>
+                            <input type="number" id="tokenPriceInput" value="12.00" step="0.0001" class="bg-transparent text-2xl font-black text-white w-24 focus:outline-none focus:border-b border-indigo-500 text-right">
+                        </div>
+                    </div>
+
+                    <!-- [NEW] 일일 이자율 설정 (Daily Interest) -->
+                    <div class="bg-slate-800 p-4 rounded-2xl border border-emerald-500/50 min-w-[160px]">
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="text-xs text-emerald-400 font-bold">DAILY INTEREST</span>
+                        </div>
+                        <div class="flex items-baseline gap-1 justify-end">
+                            <input type="number" id="dailyRateInput" value="0.68" step="0.01" class="bg-transparent text-2xl font-black text-white w-20 focus:outline-none focus:border-b border-emerald-500 text-right">
+                            <span class="text-sm text-slate-500">%</span>
+                        </div>
+                        <p class="text-[10px] text-slate-500 mt-1 text-right">0.085% x 8회/일</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- [1] 기본 시뮬레이터 (Basic) -->
+        <!-- ========================================== -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            <!-- 왼쪽: 컨트롤 패널 -->
+            <div class="lg:col-span-4 bg-white p-6 rounded-3xl shadow-xl border border-slate-100 h-fit">
+                <div class="flex items-center gap-2 mb-6 border-b border-slate-100 pb-4">
+                    <span class="bg-indigo-100 text-indigo-700 p-2 rounded-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                        </svg>
+                    </span>
+                    <h2 class="text-xl font-bold text-slate-700">투자 설정</h2>
+                </div>
+                
+                <!-- 원금 입력 -->
+                <div class="mb-6">
+                    <label for="startAmountInput" class="block text-sm font-bold text-slate-600 mb-2">시작 투자금 (원화)</label>
+                    <div class="relative">
+                        <input type="text" id="startAmountInput" 
+                            class="block w-full pr-12 pl-4 py-4 text-xl font-bold text-right border-2 border-slate-200 rounded-2xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all text-indigo-900" 
+                            placeholder="0" value="1,000,000">
+                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                            <span class="text-slate-400 font-medium">KRW</span>
+                        </div>
+                    </div>
+                    <!-- 환산 정보 표시 -->
+                    <div class="mt-3 bg-slate-50 p-3 rounded-xl text-xs space-y-1">
+                        <div class="flex justify-between text-slate-500">
+                            <span>USDT 환산액:</span>
+                            <span class="font-bold text-slate-700">≈ <span id="displayUsdtAmount">0</span> USDT</span>
+                        </div>
+                        <div class="flex justify-between text-indigo-600">
+                            <span class="font-bold">구매 가능 토큰:</span>
+                            <span class="font-black text-sm"><span id="displayTokenAmount">0</span> WebkeyDAO</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-8">
+                    <div class="flex justify-between items-end mb-3">
+                        <label class="text-sm font-bold text-slate-600">운용 기간 설정</label>
+                        <div class="flex items-baseline gap-1">
+                            <input type="number" id="durationInput" min="1" max="1095" value="30"
+                                class="w-20 text-right text-2xl font-black text-indigo-600 bg-transparent border-b-2 border-indigo-200 focus:border-indigo-600 focus:outline-none transition-colors p-0">
+                            <span class="text-sm text-slate-500 font-medium">일</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3">
+                        <button id="btnMinus" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center transition-colors active:scale-95">-</button>
+                        <div class="grow relative h-6 flex items-center">
+                            <input type="range" id="durationRange" min="1" max="1095" value="30" 
+                                class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 hover:accent-indigo-500 transition-all">
+                        </div>
+                        <button id="btnPlus" class="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold flex items-center justify-center transition-colors active:scale-95">+</button>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-400 mt-2 font-medium">
+                        <span>1일</span>
+                        <span>1095일 (3년)</span>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-3">
+                    <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 text-center flex justify-between items-center">
+                        <p class="text-sm font-bold text-blue-400 uppercase tracking-wide">Daily Interest</p>
+                        <!-- 수정됨: 입력된 이자율 표시 -->
+                        <p id="displayDailyRate" class="text-2xl font-black text-blue-600 mt-1">0.68%</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 오른쪽: 결과 차트 -->
+            <div class="lg:col-span-8 flex flex-col gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="bg-white p-6 rounded-3xl shadow-lg border-l-8 border-indigo-500 flex flex-col justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500 mb-1">최종 예상 평가금액</p>
+                            <h3 id="summaryBalance" class="text-3xl lg:text-4xl font-black text-slate-800 tracking-tight">0</h3>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center text-sm">
+                            <span class="text-slate-500">순수익률</span>
+                            <span id="summaryYield" class="font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-3xl shadow-lg border-l-8 border-blue-400 flex flex-col justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-slate-500 mb-1">총 이자 수익 (평가액)</p>
+                            <h3 id="summaryInterest" class="text-3xl lg:text-4xl font-black text-slate-800 tracking-tight">0</h3>
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center text-sm">
+                            <span class="text-slate-500">보유 토큰 수량</span>
+                            <span id="summaryTokenCount" class="font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">0 Tokens</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 grow flex flex-col min-h-[400px]">
+                    <h3 class="text-lg font-bold text-slate-700 mb-4 flex items-center gap-2">
+                        <span>📈 자산 가치 성장 그래프 (KRW)</span>
+                    </h3>
+                    <div class="relative grow w-full h-full">
+                        <canvas id="growthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- [TABLE 1] 기본 시뮬레이션 상세 내역 -->
+        <div class="bg-white p-6 rounded-3xl shadow-xl border border-slate-100">
+             <details>
+                <summary class="text-lg font-bold text-slate-700 cursor-pointer focus:outline-none flex items-center justify-between">
+                    <span>📊 기본 시뮬레이션 일별 상세 내역</span>
+                    <span class="text-indigo-500 text-sm">펼쳐보기 ▼</span>
+                </summary>
+                <div class="mt-6 overflow-x-auto table-container border border-slate-200 rounded-xl">
+                    <table class="min-w-full divide-y divide-slate-200 text-sm text-center whitespace-nowrap">
+                        <thead class="bg-slate-50 sticky top-0 font-bold text-slate-600">
+                            <tr>
+                                <th class="px-4 py-3">일차</th>
+                                <th class="px-4 py-3 text-right">보유 토큰 수</th>
+                                <th class="px-4 py-3 text-right text-blue-600">일일 이자(Token)</th>
+                                <th class="px-4 py-3 text-right font-bold text-indigo-900 bg-indigo-50">총 자산 평가액 (USDT / KRW)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="basicTableBody" class="divide-y divide-slate-100 bg-white">
+                            <!-- JS Generated (Basic) -->
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        </div>
+
+
+        <!-- ========================================== -->
+        <!-- [2] 직급별 포트폴리오 시뮬레이션 (Premium) -->
+        <!-- ========================================== -->
+        <div class="bg-slate-900 text-white rounded-3xl p-6 md:p-8 shadow-2xl overflow-hidden relative">
+            <div class="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+            <div class="absolute bottom-0 left-0 -ml-20 -mb-20 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
+
+            <div class="relative z-10">
+                <!-- 헤더와 본문 사이 간격 -->
+                <div class="flex flex-col xl:flex-row xl:items-start justify-between gap-6 mb-12 border-b border-slate-700 pb-8">
+                    <div class="flex-1 w-full">
+                        <div class="flex flex-wrap items-center gap-3 mb-4">
+                            <span class="bg-amber-400 text-amber-900 text-xs font-bold px-2 py-1 rounded">PREMIUM</span>
+                            <h2 class="text-2xl md:text-3xl font-bold">Webkey Premium Simulator : 직급별 포트폴리오</h2>
+                        </div>
+                        
+                        <div class="bg-slate-800/80 rounded-2xl p-4 border border-slate-600 backdrop-blur-sm">
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                <!-- 직급 선택 (왼쪽) -->
+                                <div class="md:col-span-3 flex flex-col h-full justify-between">
+                                    <div>
+                                        <label class="block text-xs text-slate-400 mb-1">Target Rank</label>
+                                        <select id="rankSelector" class="w-full bg-slate-700 text-white font-bold text-lg rounded-lg border border-slate-500 px-3 py-3 focus:ring-2 focus:ring-indigo-500 outline-none mb-2">
+                                            <option value="A1">A1 Rank</option>
+                                            <option value="A2">A2 Rank</option>
+                                            <option value="A3">A3 Rank</option>
+                                            <option value="A4">A4 Rank</option>
+                                            <option value="A5">A5 Rank</option>
+                                            <option value="A6">A6 Rank</option>
+                                            <option value="A7">A7 Rank</option>
+                                            <option value="A8">A8 Rank</option>
+                                            <option value="A9">A9 Rank</option>
+                                        </select>
+                                    </div>
+                                    <!-- 보너스율 표시 -->
+                                    <div class="text-center bg-amber-500/10 border border-amber-500/20 rounded-lg py-3 flex flex-col justify-center h-full max-h-[60px]">
+                                        <div class="text-[10px] text-amber-500 font-bold uppercase tracking-wider">Community Bonus</div>
+                                        <div id="dispBonusRate" class="text-amber-400 font-black text-xl">1~15%</div>
+                                    </div>
+                                </div>
+
+                                <!-- 조건 표시 (오른쪽 3개 박스) -->
+                                <div class="md:col-span-9 grid grid-cols-3 gap-3">
+                                    <div class="bg-slate-700/50 rounded-xl border border-slate-600/50 flex flex-col justify-center items-center p-4 h-full">
+                                        <div class="text-indigo-300 text-sm md:text-base font-bold mb-1">1. 개인(Main)</div>
+                                        <div id="reqMain" class="font-mono font-black text-white text-2xl md:text-3xl">$500</div>
+                                    </div>
+                                    
+                                    <div class="bg-slate-700/50 rounded-xl border border-slate-600/50 flex flex-col justify-center items-center p-4 h-full relative overflow-hidden group">
+                                        <div class="text-slate-400 text-sm md:text-base font-bold mb-1">2. 집단(대실적)</div>
+                                        <div id="reqGroup" class="font-mono font-black text-slate-500 line-through decoration-slate-600 decoration-4 text-2xl md:text-3xl">$20,000</div>
+                                        <div class="absolute inset-0 bg-slate-800/90 flex items-center justify-center text-xs text-slate-300 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                                            시뮬레이션 제외
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="bg-slate-700/50 rounded-xl border border-purple-500/30 flex flex-col justify-center items-center p-4 h-full">
+                                        <div class="text-purple-300 text-sm md:text-base font-bold mb-1">3. 커뮤니티(Sub)</div>
+                                        <div id="reqComm" class="font-mono font-black text-white text-2xl md:text-3xl">$5,000</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 pt-4 border-t border-slate-600 flex flex-wrap items-center justify-between gap-4 text-sm">
+                                <div class="flex flex-wrap items-center gap-4">
+                                    <div class="flex items-center gap-2 bg-slate-900 p-2 rounded-lg border border-slate-700">
+                                        <span class="text-slate-300">운용 기간:</span>
+                                        <input type="number" id="durationInput2" min="1" max="1095" class="w-16 bg-slate-700 text-white font-bold text-center rounded border border-slate-600 py-1 focus:outline-none focus:border-indigo-500">
+                                        <span class="text-slate-400">일</span>
+                                    </div>
+
+                                    <div class="flex items-center gap-2 bg-slate-900 p-2 rounded-lg border border-slate-700">
+                                        <span class="text-slate-300">Sub 노드 수:</span>
+                                        <input type="number" id="subCountInput" value="16" min="1" max="20" class="w-16 bg-slate-700 text-white font-bold text-center rounded border border-slate-600 py-1 focus:outline-none focus:border-indigo-500">
+                                        <span class="text-slate-400">개 (최대 20)</span>
+                                    </div>
+                                </div>
+
+                                <div class="text-right flex items-center gap-4">
+                                    <div class="text-slate-400">
+                                        <span class="block text-[10px] uppercase">Unit Sub Cost</span>
+                                        <span id="valUnitSub" class="font-mono text-purple-300 font-bold">$312.5</span>
+                                    </div>
+                                    <div class="text-slate-400 border-l border-slate-600 pl-4">
+                                        <span class="block text-[10px] uppercase">Total Investment</span>
+                                        <span id="valTotalUsd" class="font-mono text-white font-bold text-lg">$5,500</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="xl:w-64 w-full bg-slate-800 p-4 rounded-xl border border-slate-600 text-right">
+                        <p class="text-slate-400 text-xs mb-1">총 필요 투자금 (원화 환산)</p>
+                        <p id="a1TotalKrwDisplay" class="text-2xl md:text-3xl font-bold text-white tracking-tight">₩ 0</p>
+                        <p class="text-[10px] text-slate-500 mt-1">현재 환율 및 토큰가 기준</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="space-y-4">
+                        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-5 rounded-2xl shadow-lg transform transition hover:scale-105 duration-300">
+                            <p class="text-white/80 text-sm font-medium mb-1">예상 총 자산 (기간 후)</p>
+                            <div class="flex flex-col">
+                                <p id="a1TotalBalance" class="text-3xl font-black text-white">0</p>
+                                <p id="a1TotalTokens" class="text-indigo-200 font-bold text-lg mt-1">0 Tokens</p>
+                            </div>
+                            <p class="text-xs text-white/60 mt-2 text-right">투자금 + 복리수익 + 보너스</p>
+                        </div>
+                        
+                        <div class="bg-slate-800 p-5 rounded-2xl border border-slate-700">
+                             <p class="text-slate-400 text-xs uppercase font-bold mb-3">수익 구성 상세 (Token & KRW)</p>
+                             <ul class="space-y-3 text-sm">
+                                 <li class="flex justify-between items-end">
+                                     <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-indigo-500"></div>Main 수익</span>
+                                     <div class="text-right">
+                                         <span id="a1MainTokens" class="block text-xs text-slate-400">0 TK</span>
+                                         <span id="a1MainProfit" class="font-bold text-indigo-200">0</span>
+                                     </div>
+                                 </li>
+                                 <li class="flex justify-between items-end">
+                                     <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-purple-500"></div>Sub 수익</span>
+                                     <div class="text-right">
+                                         <span id="a1SubTokens" class="block text-xs text-slate-400">0 TK</span>
+                                         <span id="a1SubProfit" class="font-bold text-purple-200">0</span>
+                                     </div>
+                                 </li>
+                                 <li class="flex justify-between items-end">
+                                     <span class="flex items-center gap-2"><div class="w-2 h-2 rounded-full bg-amber-400"></div>
+                                        <span id="labelReferralRate">커뮤니티 보너스</span>
+                                     </span>
+                                     <div class="text-right">
+                                         <span id="a1BonusTokens" class="block text-xs text-slate-400">0 TK</span>
+                                         <span id="a1ReferralProfit" class="font-bold text-amber-400">0</span>
+                                     </div>
+                                 </li>
+                             </ul>
+                             <div class="mt-4 pt-3 border-t border-slate-700 flex justify-between text-xs text-slate-400">
+                                 <span>총 순수익</span>
+                                 <span id="a1NetProfit" class="font-bold text-white">0</span>
+                             </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-2 bg-slate-800 p-4 rounded-2xl border border-slate-700 min-h-[350px]">
+                        <canvas id="a1Chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- [3] 조직도 시각화 섹션 (Org Chart) -->
+        <div class="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 text-center relative overflow-hidden">
+            <h3 class="text-lg font-bold text-slate-700 mb-6 flex items-center justify-center gap-2">
+                <span>🌐 포트폴리오 조직도 (Token Quantity & Value)</span>
+            </h3>
+            
+            <div class="flex flex-col items-center justify-center">
+                <div class="relative z-10 flex flex-col items-center">
+                    <div class="w-16 h-16 md:w-20 md:h-20 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold shadow-lg border-4 border-indigo-100 z-10 relative">
+                        Main
+                        <div id="visMainAmount" class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-indigo-800 text-white text-[10px] px-2 py-1 rounded-lg whitespace-nowrap border border-white shadow-md flex flex-col items-center leading-tight">
+                            <span>500 TK</span>
+                            <span class="text-indigo-200 text-[9px]">($6,000)</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="h-8 w-px bg-slate-300 -mt-2 mb-2 z-0"></div>
+                
+                <div id="subNodesContainer" class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-x-3 gap-y-10 md:gap-x-4 md:gap-y-12 p-4 bg-slate-50 rounded-2xl border border-slate-100 w-full justify-items-center relative z-10">
+                    <!-- JS will populate nodes here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- [TABLE 2] 직급 시뮬레이션 상세 내역 -->
+        <div class="bg-white p-6 rounded-3xl shadow-xl border border-slate-100">
+             <details>
+                <summary class="text-lg font-bold text-slate-700 cursor-pointer focus:outline-none flex items-center justify-between">
+                    <span>📊 직급 시뮬레이션 일별 상세 내역</span>
+                    <span class="text-indigo-500 text-sm">펼쳐보기 ▼</span>
+                </summary>
+                <div class="mt-6 overflow-x-auto table-container border border-slate-200 rounded-xl">
+                    <table class="min-w-full divide-y divide-slate-200 text-sm text-center whitespace-nowrap">
+                        <thead class="bg-slate-50 sticky top-0 font-bold text-slate-600">
+                            <tr>
+                                <th class="px-4 py-3">일차</th>
+                                <th class="px-4 py-3 text-right text-indigo-600">Main 자산 (잔액)</th>
+                                <th class="px-4 py-3 text-right text-purple-600">Sub 자산 (잔액)</th>
+                                <th class="px-4 py-3 text-right text-amber-500">일일 커뮤니티 보너스</th>
+                                <th class="px-4 py-3 text-right font-bold text-slate-800 bg-slate-50">총 자산 평가액 (USDT / KRW)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rankTableBody" class="divide-y divide-slate-100 bg-white">
+                            <!-- JS Generated (Rank) -->
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        </div>
+
+    </div>
+
+    <script>
+        /**
+         * ------------------------------------------------------------------
+         * 상수 및 전역 변수
+         * ------------------------------------------------------------------
+         */
+        let currentDailyRate = 0.0068; // 0.68% (Mutable)
+        
+        // 동적 변수 (실시간 연동)
+        let currentUsdtRate = 1420; // Default KRW/USDT
+        let currentTokenPrice = 12.00; // Default Webkey Token Price
+
+        // 직급별 조건 데이터 (Dollar Value 기준)
+        const RANK_DATA = {
+            'A1': { main: 500,    group: 20000,    comm: 5000,     rateRange: '1~15%',   rateVal: 0.08 },
+            'A2': { main: 2000,   group: 60000,    comm: 15000,    rateRange: '16~25%',  rateVal: 0.205 },
+            'A3': { main: 5000,   group: 150000,   comm: 50000,    rateRange: '26~35%',  rateVal: 0.305 },
+            'A4': { main: 10000,  group: 400000,   comm: 100000,   rateRange: '36~45%',  rateVal: 0.405 },
+            'A5': { main: 15000,  group: 1000000,  comm: 250000,   rateRange: '46~55%',  rateVal: 0.505 },
+            'A6': { main: 20000,  group: 2500000,  comm: 500000,   rateRange: '56~65%',  rateVal: 0.605 },
+            'A7': { main: 30000,  group: 5000000,  comm: 1500000,  rateRange: '66~75%',  rateVal: 0.705 },
+            'A8': { main: 50000,  group: 10000000, comm: 3000000,  rateRange: '76~85%',  rateVal: 0.805 },
+            'A9': { main: 100000, group: 30000000, comm: 10000000, rateRange: '86~100%', rateVal: 0.93 }
+        };
+
+        /**
+         * ------------------------------------------------------------------
+         * DOM 요소
+         * ------------------------------------------------------------------
+         */
+        const els = {
+            // Market Inputs
+            usdtRateInput: document.getElementById('usdtRateInput'),
+            tokenPriceInput: document.getElementById('tokenPriceInput'),
+            dailyRateInput: document.getElementById('dailyRateInput'), // New
+            displayDailyRate: document.getElementById('displayDailyRate'), // New
+            apiStatusUsdt: document.getElementById('apiStatusUsdt'),
+            apiStatusToken: document.getElementById('apiStatusToken'),
+            
+            // Basic Sim
+            input: document.getElementById('startAmountInput'),
+            displayUsdt: document.getElementById('displayUsdtAmount'),
+            displayToken: document.getElementById('displayTokenAmount'),
+            slider: document.getElementById('durationRange'),
+            inputDuration: document.getElementById('durationInput'),
+            btnMinus: document.getElementById('btnMinus'),
+            btnPlus: document.getElementById('btnPlus'),
+            sumBalance: document.getElementById('summaryBalance'),
+            sumInterest: document.getElementById('summaryInterest'),
+            sumYield: document.getElementById('summaryYield'),
+            summaryTokenCount: document.getElementById('summaryTokenCount'),
+            basicTableBody: document.getElementById('basicTableBody'),
+
+            // Premium Sim
+            rankSelect: document.getElementById('rankSelector'),
+            inputSubCount: document.getElementById('subCountInput'),
+            inputDuration2: document.getElementById('durationInput2'),
+            
+            // Premium Displays
+            dispReqMain: document.getElementById('reqMain'),
+            dispReqGroup: document.getElementById('reqGroup'),
+            dispReqComm: document.getElementById('reqComm'),
+            dispBonusRate: document.getElementById('dispBonusRate'),
+            dispValUnitSub: document.getElementById('valUnitSub'),
+            dispValTotalUsd: document.getElementById('valTotalUsd'),
+            dispTotalKrw: document.getElementById('a1TotalKrwDisplay'),
+            a1Total: document.getElementById('a1TotalBalance'),
+            a1TotalTokens: document.getElementById('a1TotalTokens'),
+            a1MainTokens: document.getElementById('a1MainTokens'),
+            a1SubTokens: document.getElementById('a1SubTokens'),
+            a1BonusTokens: document.getElementById('a1BonusTokens'),
+            a1Main: document.getElementById('a1MainProfit'),
+            a1Sub: document.getElementById('a1SubProfit'),
+            a1Referral: document.getElementById('a1ReferralProfit'),
+            labelReferralRate: document.getElementById('labelReferralRate'),
+            a1NetProfit: document.getElementById('a1NetProfit'),
+            visMainAmount: document.getElementById('visMainAmount'),
+            visSubContainer: document.getElementById('subNodesContainer'),
+            rankTableBody: document.getElementById('rankTableBody')
+        };
+
+        let mainChart = null;
+        let a1Chart = null;
+
+        /**
+         * ------------------------------------------------------------------
+         * 유틸리티 함수
+         * ------------------------------------------------------------------
+         */
+        const formatNum = (n) => new Intl.NumberFormat('ko-KR').format(Math.round(n));
+        const formatUsd = (n) => new Intl.NumberFormat('en-US').format(n);
+        const formatUsdRound = (n) => new Intl.NumberFormat('en-US').format(Math.round(n));
+        const formatToken = (n) => new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(n);
+        const parseNum = (s) => Number(s.replace(/[^0-9.]/g, ''));
+
+        // API Status Indicator Helper
+        function setApiStatus(elementId, isSuccess) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            
+            if (isSuccess) {
+                // 초록색 (성공)
+                el.innerHTML = `
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                `;
+            } else {
+                // 회색/빨간색 (실패/기본값)
+                el.innerHTML = `
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-slate-500"></span>
+                `;
+            }
+        }
+
+        /**
+         * ------------------------------------------------------------------
+         * [NEW] 실시간 시세 조회 (Upbit & DexScreener)
+         * ------------------------------------------------------------------
+         */
+        
+        // 1. Upbit: USDT/KRW
+        async function fetchUpbitUsdtPrice() {
+            try {
+                const response = await fetch('https://api.upbit.com/v1/ticker?markets=KRW-USDT');
+                if (!response.ok) throw new Error('API Error');
+                const data = await response.json();
+                if (data && data[0] && data[0].trade_price) {
+                    currentUsdtRate = data[0].trade_price;
+                    els.usdtRateInput.value = currentUsdtRate;
+                    setApiStatus('apiStatusUsdt', true);
+                    updateSim();
+                }
+            } catch (error) {
+                console.warn('업비트 시세 조회 실패, 기본값 사용', error);
+                setApiStatus('apiStatusUsdt', false);
+            }
+        }
+
+        // 2. DexScreener: Webkey DAO Token Price
+        async function fetchWebkeyTokenPrice() {
+            try {
+                const response = await fetch('https://api.dexscreener.com/latest/dex/search?q=Webkey%20DAO');
+                if (!response.ok) throw new Error('API Error');
+                const data = await response.json();
+                
+                if (data.pairs && data.pairs.length > 0) {
+                    const priceUsd = parseFloat(data.pairs[0].priceUsd);
+                    if (!isNaN(priceUsd)) {
+                        currentTokenPrice = priceUsd;
+                        els.tokenPriceInput.value = currentTokenPrice.toFixed(4);
+                        setApiStatus('apiStatusToken', true);
+                        updateSim();
+                        return;
+                    }
+                }
+                throw new Error('No valid price found');
+            } catch (error) {
+                console.warn('토큰 시세 조회 실패, 기본값 사용', error);
+                setApiStatus('apiStatusToken', false);
+            }
+        }
+
+        // 초기 실행 시 시세 조회
+        fetchUpbitUsdtPrice();
+        fetchWebkeyTokenPrice();
+
+        /**
+         * ------------------------------------------------------------------
+         * 이벤트 리스너
+         * ------------------------------------------------------------------
+         */
+        // Market Inputs
+        els.usdtRateInput.addEventListener('input', () => {
+            currentUsdtRate = parseFloat(els.usdtRateInput.value) || 1400;
+            updateSim();
+        });
+        els.tokenPriceInput.addEventListener('input', () => {
+            currentTokenPrice = parseFloat(els.tokenPriceInput.value) || 12.0;
+            updateSim();
+        });
+        els.dailyRateInput.addEventListener('input', () => {
+            let val = parseFloat(els.dailyRateInput.value);
+            if (!isNaN(val)) {
+                currentDailyRate = val / 100; // Convert percentage to decimal
+                els.displayDailyRate.textContent = `${val}%`; // Update display text
+                updateSim();
+            }
+        });
+
+        // Basic Sim Input
+        els.input.addEventListener('input', (e) => {
+            const raw = e.target.value.replace(/[^0-9]/g, '');
+            if (!raw) { e.target.value = ''; updateSim(); return; }
+            e.target.value = formatNum(parseInt(raw, 10));
+            updateSim();
+        });
+
+        // Duration Sync
+        const syncDuration = (val) => {
+            let v = parseInt(val);
+            if (isNaN(v) || v < 1) v = 1;
+            if (v > 1095) v = 1095;
+            els.slider.value = v;
+            els.inputDuration.value = v;
+            els.inputDuration2.value = v;
+            updateSim();
+        };
+
+        els.slider.addEventListener('input', () => syncDuration(els.slider.value));
+        els.inputDuration.addEventListener('change', () => syncDuration(els.inputDuration.value));
+        els.btnMinus.addEventListener('click', () => syncDuration(parseInt(els.slider.value) - 1));
+        els.btnPlus.addEventListener('click', () => syncDuration(parseInt(els.slider.value) + 1));
+        els.inputDuration2.addEventListener('change', () => syncDuration(els.inputDuration2.value));
+
+        // Premium Sim Inputs
+        els.rankSelect.addEventListener('change', updateSim);
+        els.inputSubCount.addEventListener('input', () => {
+            let val = parseInt(els.inputSubCount.value);
+            if (isNaN(val) || val < 1) val = 1;
+            if (val > 20) { val = 20; }
+            els.inputSubCount.value = val;
+            updateSim();
+        });
+
+        /**
+         * ------------------------------------------------------------------
+         * 계산 로직 (토큰 기반)
+         * ------------------------------------------------------------------
+         */
+        function calculateBasic(startKrw, days) {
+            const startUsdt = startKrw / currentUsdtRate;
+            const startTokens = startUsdt / currentTokenPrice;
+
+            els.displayUsdt.textContent = formatUsd(Number(startUsdt.toFixed(2)));
+            els.displayToken.textContent = formatToken(startTokens);
+
+            let currentTokenBalance = startTokens;
+            const history = [];
+
+            for (let d = 1; d <= days; d++) {
+                const dayStartTokens = currentTokenBalance;
+                const interestTokens = currentTokenBalance * currentDailyRate;
+                currentTokenBalance += interestTokens;
+                
+                const endValueUsdt = currentTokenBalance * currentTokenPrice;
+                const endValueKrw = endValueUsdt * currentUsdtRate;
+
+                history.push({
+                    day: d,
+                    startTokens: dayStartTokens,
+                    interestTokens: interestTokens,
+                    endTokens: currentTokenBalance,
+                    endValueUsdt: endValueUsdt,
+                    endValueKrw: endValueKrw,
+                    startKrw: startKrw 
+                });
+            }
+            
+            return { 
+                finalTokens: currentTokenBalance, 
+                finalValueKrw: currentTokenBalance * currentTokenPrice * currentUsdtRate,
+                history 
+            };
+        }
+
+        function calculateRankPortfolio(days) {
+            const rank = els.rankSelect.value;
+            const data = RANK_DATA[rank];
+            const subCount = parseInt(els.inputSubCount.value) || 1;
+            const rankBonusRate = data.rateVal;
+
+            const usdMain = data.main;
+            const usdCommTotal = data.comm;
+            const usdSubUnit = usdCommTotal / subCount; 
+            const usdTotalInvest = usdMain + usdCommTotal;
+
+            const tokensMainStart = usdMain / currentTokenPrice;
+            const tokensSubStartTotal = usdCommTotal / currentTokenPrice;
+            const tokensSubUnit = tokensSubStartTotal / subCount;
+
+            // UI 업데이트
+            els.dispReqMain.textContent = `$${formatUsdRound(data.main)}`;
+            els.dispReqGroup.textContent = `$${formatUsdRound(data.group)}`;
+            els.dispReqComm.textContent = `$${formatUsdRound(data.comm)}`;
+            els.dispBonusRate.textContent = `${data.rateRange}`;
+            els.labelReferralRate.textContent = `커뮤니티 보너스 (${(rankBonusRate * 100).toFixed(1)}%)`;
+            els.dispValUnitSub.textContent = `$${formatUsd(Number(usdSubUnit.toFixed(2)))}`;
+            els.dispValTotalUsd.textContent = `$${formatUsdRound(usdTotalInvest)}`;
+
+            // 조직도 업데이트
+            els.visMainAmount.innerHTML = `<span class="font-bold">${formatToken(tokensMainStart)} TK</span><span class="text-indigo-200 text-[9px] block">($${formatUsd(usdMain)})</span>`;
+            renderOrgChart(subCount, tokensSubUnit, usdSubUnit);
+
+            const krwTotalInvest = usdTotalInvest * currentUsdtRate;
+            els.dispTotalKrw.textContent = `₩ ${formatNum(krwTotalInvest)}`;
+
+            let mainTokens = tokensMainStart;
+            let subTokensTotal = tokensSubStartTotal;
+            let accumulatedBonusTokens = 0;
+            const history = [];
+
+            for (let d = 1; d <= days; d++) {
+                const mainInterest = mainTokens * currentDailyRate;
+                mainTokens += mainInterest;
+
+                const subInterest = subTokensTotal * currentDailyRate;
+                subTokensTotal += subInterest;
+
+                const dailyBonusTokens = subInterest * rankBonusRate;
+                accumulatedBonusTokens += dailyBonusTokens;
+
+                // Total Values
+                const totalTokens = mainTokens + subTokensTotal + accumulatedBonusTokens;
+                const totalValueUsdt = totalTokens * currentTokenPrice;
+                const totalValueKrw = totalValueUsdt * currentUsdtRate;
+
+                history.push({
+                    day: d,
+                    mainTokens: mainTokens,
+                    subTokens: subTokensTotal,
+                    dailyBonusTokens: dailyBonusTokens,
+                    totalValueUsdt: totalValueUsdt,
+                    totalValueKrw: totalValueKrw
+                });
+            }
+
+            // 결과 계산
+            const finalTotalTokens = mainTokens + subTokensTotal + accumulatedBonusTokens;
+            const finalTotalValueKrw = finalTotalTokens * currentTokenPrice * currentUsdtRate;
+            
+            const profitMainTokens = mainTokens - tokensMainStart;
+            const profitSubTokens = subTokensTotal - tokensSubStartTotal;
+            const profitBonusTokens = accumulatedBonusTokens;
+
+            const profitMainKrw = profitMainTokens * currentTokenPrice * currentUsdtRate;
+            const profitSubKrw = profitSubTokens * currentTokenPrice * currentUsdtRate;
+            const profitBonusKrw = profitBonusTokens * currentTokenPrice * currentUsdtRate;
+
+            return {
+                finalTotalTokens,
+                finalTotalValueKrw,
+                profitMainTokens,
+                profitSubTokens,
+                profitBonusTokens,
+                profitMainKrw,
+                profitSubKrw,
+                profitBonusKrw,
+                history
+            };
+        }
+
+        /**
+         * ------------------------------------------------------------------
+         * 메인 업데이트
+         * ------------------------------------------------------------------
+         */
+        function updateSim() {
+            const startAmount = parseNum(els.input.value) || 0;
+            const days = parseInt(els.slider.value);
+            
+            if (els.inputDuration2.value != days) {
+                els.inputDuration2.value = days;
+            }
+
+            // --- 기본 시뮬레이터 ---
+            const basicData = calculateBasic(startAmount, days);
+            
+            els.sumBalance.textContent = formatNum(basicData.finalValueKrw);
+            els.summaryTokenCount.textContent = `${formatToken(basicData.finalTokens)} Tokens`;
+            
+            const totalProfit = basicData.finalValueKrw - startAmount;
+            els.sumInterest.textContent = formatNum(totalProfit);
+
+            let yieldRate = 0;
+            if (startAmount > 0) {
+                yieldRate = (totalProfit / startAmount) * 100;
+            }
+            els.sumYield.textContent = `${yieldRate.toFixed(2)}%`;
+
+            // --- 직급별 포트폴리오 ---
+            const rankData = calculateRankPortfolio(days);
+            els.a1Total.textContent = `₩ ${formatNum(rankData.finalTotalValueKrw)}`;
+            // New: 총 토큰 표시
+            els.a1TotalTokens.textContent = `${formatToken(rankData.finalTotalTokens)} Tokens`;
+            
+            // 상세 내역 (Token & KRW)
+            els.a1MainTokens.textContent = `${formatToken(rankData.profitMainTokens)} TK`;
+            els.a1Main.textContent = `₩ ${formatNum(rankData.profitMainKrw)}`;
+            
+            els.a1SubTokens.textContent = `${formatToken(rankData.profitSubTokens)} TK`;
+            els.a1Sub.textContent = `₩ ${formatNum(rankData.profitSubKrw)}`;
+            
+            els.a1BonusTokens.textContent = `${formatToken(rankData.profitBonusTokens)} TK`;
+            els.a1Referral.textContent = `₩ ${formatNum(rankData.profitBonusKrw)}`;
+            
+            const totalProfitKrw = rankData.profitMainKrw + rankData.profitSubKrw + rankData.profitBonusKrw;
+            els.a1NetProfit.textContent = `₩ ${formatNum(totalProfitKrw)}`;
+
+            renderMainChart(basicData.history);
+            renderRankChart(rankData.history);
+            renderBasicTable(basicData.history);
+            renderRankTable(rankData.history);
+        }
+
+        /**
+         * ------------------------------------------------------------------
+         * 렌더링 함수들
+         * ------------------------------------------------------------------
+         */
+        function renderOrgChart(count, unitTokens, unitValueUsd) {
+            const container = els.visSubContainer;
+            container.innerHTML = ''; 
+            
+            const tokenText = `${formatToken(unitTokens)} TK`;
+            const usdText = `($${formatUsd(unitValueUsd)})`;
+
+            for (let i = 0; i < count; i++) {
+                const node = document.createElement('div');
+                node.className = "flex flex-col items-center org-connector relative";
+                node.innerHTML = `
+                    <div class="w-10 h-10 md:w-12 md:h-12 bg-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-md hover:scale-110 transition-transform cursor-default z-10 border-2 border-white relative">
+                        S${i+1}
+                    </div>
+                    <div class="text-[9px] md:text-[10px] text-slate-600 mt-1 font-medium bg-slate-100 px-2 py-1 rounded text-center leading-tight shadow-sm border border-slate-200">
+                        <div class="font-bold text-purple-700">${tokenText}</div>
+                        <div class="text-slate-400">${usdText}</div>
+                    </div>
+                `;
+                container.appendChild(node);
+            }
+        }
+
+        function renderMainChart(data) {
+            const ctx = document.getElementById('growthChart').getContext('2d');
+            const labels = data.map(d => `${d.day}일`);
+            
+            if (mainChart) mainChart.destroy();
+
+            mainChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '평가 금액 (KRW)',
+                            data: data.map(d => d.endValueKrw),
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            borderWidth: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { position: 'top' } },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { ticks: { callback: (v) => formatNum(v) }, grid: { borderDash: [2, 4] } }
+                    }
+                }
+            });
+        }
+
+        function renderRankChart(data) {
+            const ctx = document.getElementById('a1Chart').getContext('2d');
+            const labels = data.map(d => d.day);
+            
+            if (a1Chart) a1Chart.destroy();
+
+            a1Chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: '총 자산 합계 (KRW)',
+                            data: data.map(d => d.totalValueKrw),
+                            borderColor: '#ffffff',
+                            backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            borderWidth: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { labels: { color: '#cbd5e1' } },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            titleColor: '#fff',
+                            bodyColor: '#cbd5e1',
+                            callbacks: { label: (ctx) => `${ctx.dataset.label}: ${formatNum(ctx.raw)}원` }
+                        }
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: { ticks: { callback: (v) => formatNum(v), color: '#94a3b8' }, grid: { color: '#334155' } }
+                    }
+                }
+            });
+        }
+
+        function renderBasicTable(data) {
+            const fragment = document.createDocumentFragment();
+            data.forEach(d => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="px-4 py-3 text-slate-500">${d.day}</td>
+                    <td class="px-4 py-3 text-right text-slate-400 font-light">${formatToken(d.startTokens)} TK</td>
+                    <td class="px-4 py-3 text-right text-blue-600 bg-blue-50/30">+${formatToken(d.interestTokens)} TK</td>
+                    <td class="px-4 py-3 text-right font-bold text-indigo-900 bg-indigo-50/30">
+                        <div class="text-xs text-slate-500">$${formatUsd(d.endValueUsdt)}</div>
+                        <div>${formatNum(d.endValueKrw)}원</div>
+                    </td>
+                `;
+                fragment.appendChild(tr);
+            });
+            els.basicTableBody.innerHTML = '';
+            els.basicTableBody.appendChild(fragment);
+        }
+
+        function renderRankTable(data) {
+            const fragment = document.createDocumentFragment();
+            data.forEach(d => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="px-4 py-3 text-slate-500">${d.day}</td>
+                    <td class="px-4 py-3 text-right text-indigo-600 font-medium">${formatToken(d.mainTokens)} TK</td>
+                    <td class="px-4 py-3 text-right text-purple-600 font-medium">${formatToken(d.subTokens)} TK</td>
+                    <td class="px-4 py-3 text-right text-amber-600 font-medium">+${formatToken(d.dailyBonusTokens)} TK</td>
+                    <td class="px-4 py-3 text-right font-bold text-slate-800 bg-slate-50">
+                        <div class="text-xs text-slate-500">$${formatUsd(d.totalValueUsdt)}</div>
+                        <div>${formatNum(d.totalValueKrw)}원</div>
+                    </td>
+                `;
+                fragment.appendChild(tr);
+            });
+            els.rankTableBody.innerHTML = '';
+            els.rankTableBody.appendChild(fragment);
+        }
+
+        // 초기 실행
+        updateSim();
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 검색 엔진 최적화 (SEO) 메타 태그 -->
+    <meta name="description" content="경제적 자유를 위한 Webkey DAO 프로젝트 소개. 아누비 재단 투자, 12시간 복리 스테이킹, Defi 재테크로 백만장자 되는 법. Web3 투자 가이드.">
+    <meta name="keywords" content="Webkey DAO, 웹키 다오, 아누비 재단, Anubi Foundation, Defi, 디파이, 스테이킹, 복리 투자, 재테크, 돈벌기, 경제적 자유, 파이프라인, 부업, 코인 투자, 백만장자, 소액 투자, 가상화폐, 블록체인">
+    <meta name="author" content="Million">
+    
+    <title>경제적 자유를 위한 첫걸음, Webkey DAO - Million</title>
+    
+    <style>
+        :root {
+            --primary-color: #0f172a; /* 짙은 네이비 (신뢰) */
+            --accent-color: #d4af37; /* 골드 (부/돈) */
+            --secondary-bg: #f1f5f9;
+            --text-color: #333333; /* 기본 텍스트 색상 */
+            --white: #ffffff;
+            /* **추가:** CTA 버튼용 선명한 골드색 (대비 개선) */
+            --vibrant-gold: #ffc107; 
+        }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            line-height: 1.6;
+            color: var(--text-color) !important; /* 텍스트 색상 강제 지정 */
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--white);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        
+        /* 헤더 스타일 */
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, var(--primary-color), #1e293b);
+            color: white;
+            border-radius: 8px 8px 0 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .logo-box {
+            background-color: white;
+            border-radius: 10px;
+            padding: 10px;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .logo-box img {
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+        }
+        header h1 {
+            font-size: 2.2rem;
+            margin: 10px 0;
+            font-weight: 700;
+            word-break: keep-all;
+        }
+        header p {
+            font-size: 1.1rem;
+            color: var(--accent-color) !important; /* 밝은 골드색으로 강제 적용 */
+            font-weight: 600; 
+        }
+
+        .author-tag {
+            background-color: var(--accent-color);
+            color: var(--primary-color);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 15px;
+        }
+
+        /* 본문 공통 */
+        .content-section {
+            padding: 30px 25px;
+        }
+        h2 {
+            color: var(--primary-color) !important; 
+            border-left: 5px solid var(--accent-color); 
+            padding: 10px 0 10px 15px; 
+            margin-top: 50px;
+            font-size: 1.6rem;
+            font-weight: 700;
+            background-color: #fcfcfc; 
+        }
+        h3 { 
+             color: var(--primary-color) !important; 
+             text-align: center;
+        }
+        p {
+            margin-bottom: 20px;
+            font-size: 1.05rem;
+            word-break: keep-all;
+            color: var(--text-color) !important; 
+        }
+        .highlight {
+            background-color: #fff8e1;
+            padding: 2px 5px;
+            font-weight: bold;
+            color: #b78a02 !important; 
+        }
+
+        /* 가격 정보 박스 */
+        .price-ticker {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--primary-color);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .price-label { font-size: 0.9rem; opacity: 0.8; }
+        .price-value { font-size: 1.4rem; font-weight: bold; color: var(--accent-color); }
+        
+        /* 1. DEX 링크 스타일 수정: 배경색과 글자색을 명시적으로 강제 지정하여 충돌 방지 */
+        .dex-link {
+            background-color: #d4af37 !important; /* 밝은 골드색 강제 지정 */
+            color: #0f172a !important;          /* 짙은 네이비색 강제 지정 */
+            text-decoration: none;
+            padding: 8px 18px; /* 패딩을 약간 키워 버튼 느낌 강화 */
+            border-radius: 5px;
+            font-size: 0.85rem;
+            font-weight: 600; /* 글자 두께 추가 */
+            transition: 0.3s;
+            /* 그림자 추가 */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+        }
+        /* 호버 스타일은 색상을 반전하여 명확한 피드백 제공 */
+        .dex-link:hover { 
+            background-color: #0f172a !important; /* 배경을 네이비로 */
+            color: #d4af37 !important;          /* 글자를 골드로 */
+        }
+        /* 방문한 링크 스타일도 호버와 동일하게 적용하여 색상 충돌 방지 */
+        .dex-link:visited {
+            background-color: #d4af37 !important; 
+            color: #0f172a !important;
+        }
+        /* DEX 링크 끝 */
+
+
+        /* 비교표 스타일 */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 0.95rem;
+        }
+        .comparison-table th, .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: center;
+            color: var(--text-color) !important; 
+        }
+        .comparison-table th {
+            background-color: var(--secondary-bg);
+            color: var(--primary-color) !important;
+        }
+        .comparison-table tr:last-child td {
+            font-weight: bold;
+            background-color: #fffbf0;
+            color: #b78a02 !important;
+        }
+
+        /* 시뮬레이터 그리드 */
+        .simulator-grid {
+            display: flex;
+            gap: 20px; 
+            margin: 30px 0;
+            flex-wrap: wrap; 
+        }
+        
+        /* 시뮬레이터 박스 스타일 */
+        .simulator-box {
+            flex: 1 1 100%; 
+            min-width: 300px; 
+            background-color: #ffffff; 
+            border: 1px solid #e2e8f0;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05); 
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .simulator-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+        
+        /* H3 in simulator box refinement */
+        .simulator-box h3 {
+             color: var(--primary-color) !important;
+             text-align: center;
+             font-size: 1.4rem;
+             margin-top: 0;
+             margin-bottom: 20px;
+             border-bottom: 1px solid #f1f5f9;
+             padding-bottom: 10px;
+        }
+
+        /* Input 및 Button 스타일 개선 */
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-color) !important;
+            font-size: 0.95rem;
+        }
+        .simulator-box input[type="number"],
+        .simulator-box select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            background-color: #f8fafc;
+            color: var(--text-color) !important;
+            transition: border-color 0.3s;
+        }
+        .simulator-box input[type="number"]:focus,
+        .simulator-box select:focus {
+            border-color: var(--accent-color);
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
+        }
+        
+        .calc-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--primary-color);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            margin-top: 10px;
+            box-shadow: 0 4px 10px rgba(15, 23, 42, 0.3);
+        }
+        .calc-btn:hover {
+            background-color: #1e293b;
+            transform: translateY(-1px);
+        }
+
+        .result-area {
+            text-align: center;
+            margin-top: 25px;
+            padding: 20px;
+            border-top: 1px dashed #e2e8f0;
+        }
+        .result-area div:first-child {
+            font-size: 1rem;
+            color: #555 !important;
+            margin-bottom: 5px;
+        }
+        .result-value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #b78a02 !important; 
+            margin-bottom: 5px;
+        }
+
+        .rate-info {
+            font-size: 0.85rem;
+            color: #666 !important; 
+            margin-top: 10px;
+            text-align: center;
+            background: #eee;
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        /* 최종 CTA 및 연락처 블록 스타일 */
+        .final-cta-block {
+            margin-top: 40px;
+            padding: 30px;
+            background-color: var(--secondary-bg); 
+            border-radius: 20px;
+            border: 2px solid var(--accent-color); 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .final-cta-block h3 {
+            color: var(--primary-color) !important;
+            text-align: center; 
+            font-size: 1.5rem;
+            font-weight: 700;
+            padding-bottom: 10px;
+            margin-top: 0;
+            margin-bottom: 25px;
+            border-bottom: 2px dashed #d1d5db; 
+        }
+        
+        .footer-contact h3 {
+            border-top: 2px dashed #d1d5db; 
+            margin-top: 40px;
+            padding-top: 20px;
+            border-bottom: none;
+            margin-bottom: 25px;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        /* 2. 참여하기 버튼 스타일 수정: 대비를 극대화하고 선명한 골드 사용 */
+        .cta-button {
+            display: block;
+            width: 80%;
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 18px 30px;
+            background-color: var(--vibrant-gold); /* 선명한 골드 색상 */
+            color: #0f172a !important;            /* 짙은 네이비 글자색 (대비 개선을 위해 흰색도 고려 가능) */
+            text-align: center;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            transition: background-color 0.3s, transform 0.1s, box-shadow 0.3s;
+            box-shadow: 0 4px 15px rgba(255, 193, 7, 0.6); /* 더 선명한 그림자 */
+            border: 2px solid var(--primary-color);
+        }
+        .cta-button:hover {
+            background-color: #ffda6a; /* 호버 시 더 밝게 */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 193, 7, 0.8);
+        }
+        /* CTA 버튼 끝 */
+
+        .warning-box {
+            background-color: #fff5f5;
+            border: 1px solid #feb2b2;
+            color: #c53030 !important; 
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 0.95rem;
+            text-align: left;
+        }
+
+        /* 푸터 및 연락처 */
+        .contact-number {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-color) !important; 
+        }
+
+        /* 모바일 대응 */
+        @media (max-width: 600px) {
+            header h1 { font-size: 1.8rem; }
+            .container { padding: 0; }
+            .content-section { padding: 20px; }
+            .price-ticker { flex-direction: column; text-align: center; }
+            .cta-button { font-size: 1.1rem; padding: 15px 30px; width: 100%; max-width: none; box-sizing: border-box; }
+            .final-cta-block { padding: 20px; }
+        }
+        /* 데스크톱에서 좌우 배치 */
+        @media (min-width: 768px) {
+            .simulator-box {
+                flex: 1 1 calc(50% - 10px); 
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <!-- 로고 영역 -->
+        <div class="logo-container">
+            <!-- Webkey 로고 -->
+            <div class="logo-box">
+                <img src="https://s2.coinmarketcap.com/static/img/coins/64x64/36093.png" alt="Webkey DAO Logo" onerror="this.onerror=null; this.src='https://placehold.co/64x64/0f172a/FFF?text=W'">
+            </div>
+            <div style="font-size: 20px; color: rgba(255,255,255,0.5);">X</div>
+            <!-- Anubi 로고 -->
+            <div class="logo-box">
+                <img src="https://pbs.twimg.com/profile_images/1801159607902945280/EAA-iMBo_400x400.jpg" alt="Anubi Foundation Logo" style="width: 100%;" onerror="this.onerror=null; this.src='https://placehold.co/64x64/d4af37/000?text=A'">
+            </div>
+        </div>
+
+        <h1>잠자는 동안 자산이 불어나는<br>Webkey DAO</h1>
+        <p>12시간마다 터지는 복리의 마법을 경험하세요</p>
+        <div class="author-tag">Editor. Million</div>
+    </header>
+
+    <div class="content-section">
+        <!-- 가격 정보 (업데이트 필요 시 텍스트 수정) -->
+        <div class="price-ticker">
+            <div>
+                <span class="price-label">현재 Webkey 예상 DEX 가격</span>
+                <!-- 실시간 가격 API가 없으므로 정적 텍스트 표시 -->
+                <div class="price-value">$12.00 ~ $15.00 <span style="font-size:0.8rem; font-weight:normal;">(변동성 있음)</span></div>
+            </div>
+            <a href="https://pancakeswap.finance/swap?chain=bsc&chainOut=bsc&inputCurrency=0x194B302a4b0a79795Fb68E2ADf1B8c9eC5ff8d1F&outputCurrency=0x55d398326f99059fF775485246999027B3197955&exactAmount=1&exactField=INPUT" target="_blank" class="dex-link">DEX에서 시세 확인하기</a>
+        </div>
+
+        <p>반갑습니다. 경제적 자유를 향해 나아가는 <strong>Million</strong>입니다.</p>
+        <p>월급만으로는 부자가 되기 힘든 시대, 우리는 잠자는 동안에도 돈이 일하게 만드는 시스템을 찾아야 합니다. 오늘은 그 해답이 될 수 있는 혁신적인 프로젝트, <strong>Webkey DAO (웹키 다오)</strong>를 소개합니다. 이는 디파이(Defi) 시장에서 소액 투자로 백만장자를 꿈꿀 수 있는 기회를 제공합니다.</p>
+
+        <!-- [수정]: 이모지 다시 적용 + 블록 강조 유지 -->
+        <h2>💰 왜 Webkey DAO 인가? (신뢰성 & 차별성)</h2>
+        <p>디파이(DeFi) 시장에는 수많은 프로젝트가 존재합니다. 하지만 성공한 프로젝트에는 공통된 공식이 있습니다. 바로 '역사'와 '배경'입니다. Webkey DAO는 단순한 고수익 프로젝트를 넘어, 신뢰할 수 있는 기반 위에 서 있습니다.</p>
+        
+        <table class="comparison-table">
+            <thead>
+                <tr>
+                    <th>구분</th>
+                    <th>특징</th>
+                    <th>비고</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>올림푸스 DAO</strong><br>(Olympus DAO)</td>
+                    <td>5년 이상 유지된<br>DAO의 시초</td>
+                    <td>디파이 모델의<br>지속가능성 증명</td>
+                </tr>
+                <tr>
+                    <td><strong>오리진 DAO</strong><br>(Origin DAO)</td>
+                    <td><strong>아누비 재단</strong>의<br> 지원</td>
+                    <td>거대 자본의<br>생태계 확장 성공</td>
+                </tr>
+                <tr>
+                    <td><strong>Webkey DAO</strong><br>(웹키 다오)</td>
+                    <td><strong>아누비 재단 $1억 투자</strong> + 적극 지원 +<br>+ Depin + 12시간 복리 시스템</td>
+                    <td>검증된 성공 공식에<br>속도를 더하다</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <p>Webkey DAO는 5년간 시장에서 살아남은 올림푸스 DAO의 안정성과, 아누비 재단의 전폭적인 지원을 받은 오리진 DAO의 성장성을 모두 갖추고 있습니다. 특히 <strong>아누비 재단(Anubi Foundation)</strong>의 투자는 단순한 자금 지원을 넘어 프로젝트의 신뢰도를 보증하는 강력한 지표이며, 12시간마다 터지는 복리는 다른 DAO와 차별화되는 폭발적인 수익성을 제공합니다.</p>
+
+        <!-- [수정]: 이모지 다시 적용 + 블록 강조 유지 -->
+        <h2>📈 복리 수익 시뮬레이터</h2>
+        
+        <!-- 시뮬레이터 그리드 시작 -->
+        <div class="simulator-grid">
+            
+            <!-- 1. 복리 수익 시뮬레이터 (토큰 수량) -->
+            <div class="simulator-box">
+                <h3>📊 내 자산은 얼마나 늘어날까? (토큰 수량)</h3>
+                <p style="font-size: 0.9rem; color: #555;">스테이킹 시 받게 되는 이자(Rebase)를 통해 불어나는 토큰 수량을 계산해보세요.</p>
+                
+                <div class="input-group">
+                    <label>시작 토큰 수량 (개)</label>
+                    <input type="number" id="tokenAmount" placeholder="예: 100" value="100" oninput="calculateReward()">
+                </div>
+                <div class="input-group">
+                    <label>거치 기간 (일)</label>
+                    <input type="number" id="days" placeholder="예: 30" value="30" oninput="calculateReward()">
+                </div>
+                
+                <button class="calc-btn" onclick="calculateReward()">예상 토큰 수량 계산하기</button>
+                
+                <div class="result-area">
+                    <div>예상 최종 토큰 수량</div>
+                    <div class="result-value" id="resultToken">0 개</div>
+                    <div style="font-size: 0.8rem; color: #888;">(원금 + 복리이자 포함)</div>
+                </div>
+
+                <div class="rate-info">
+                    * 현재 일일 이자율 약 <strong>0.68%</strong> 기준 (시장 상황 및 정책에 따라 변동 가능)
+                </div>
+            </div>
+
+            <!-- 2. 화폐 가치 환산 시뮬레이터 -->
+            <div class="simulator-box">
+                <h3>💵 예상 화폐 가치 환산 시뮬레이터</h3>
+                <p style="font-size: 0.9rem; color: #555;">복리로 불어난 토큰 수량을 현재 시장 가격으로 환산해 보세요.</p>
+                
+                <div class="input-group">
+                    <label>WebkeyDAO 토큰 예상 가격 (USDT)</label>
+                    <input type="number" id="wkeyPriceUsd" placeholder="예: 14.00" value="14.00" oninput="calculateFiatValue()">
+                </div>
+
+                <div class="input-group">
+                    <label>환산 화폐 선택</label>
+                    <select id="currencySelect" onchange="calculateFiatValue()">
+                        <option value="USD">USDT (테더)</option>
+                        <option value="KRW">KRW (원화) - 김프 반영</option>
+                    </select>
+                </div>
+                
+                <button class="calc-btn" onclick="calculateFiatValue()">가치 환산하기</button>
+                
+                <div class="result-area">
+                    <div>예상 총 화폐 가치</div>
+                    <div class="result-value" id="resultFiat">0 USDT</div>
+                </div>
+                <div class="rate-info">
+                    * KRW 환산 시, **1 USDT = 1,490.00 KRW** (금일 업비트 시세 기준) 적용.<br>
+                    실시간 변동률 및 거래 수수료는 미반영된 추정치입니다.
+                </div>
+            </div>
+            <!-- 화폐 가치 시뮬레이터 종료 -->
+
+        </div>
+        <!-- 시뮬레이터 그리드 종료 -->
+
+        <script>
+            let finalTokenAmount = 0; 
+            // USDT/KRW 환율 (업비트 시세 반영)
+            const USDT_TO_KRW_RATE = 1490.00; 
+
+            function calculateReward() {
+                // 입력값 가져오기
+                const principal = parseFloat(document.getElementById('tokenAmount').value);
+                const days = parseFloat(document.getElementById('days').value);
+                
+                if (isNaN(principal) || isNaN(days) || principal < 0 || days < 0) {
+                    document.getElementById('resultToken').innerText = "입력 오류";
+                    finalTokenAmount = 0;
+                    calculateFiatValue(true);
+                    return;
+                }
+
+                // 일일 이자율 0.68% (변동 가능)
+                const dailyRate = 0.0068; 
+                
+                // 복리 계산 공식: 원금 * (1 + 이자율)^기간
+                const finalAmount = principal * Math.pow((1 + dailyRate), days);
+                finalTokenAmount = finalAmount; // 전역 변수 업데이트
+                
+                // 토큰 수량 결과 표시
+                document.getElementById('resultToken').innerText = 
+                    finalAmount.toLocaleString(undefined, {maximumFractionDigits: 2}) + " 개";
+                
+                // 화폐 가치 시뮬레이터 자동 업데이트
+                calculateFiatValue(true); 
+            }
+
+            function calculateFiatValue(autoRun = false) {
+                // 토큰 수량이 0이거나 자동 실행이 아닐 때 경고
+                if (finalTokenAmount === 0 && !autoRun) {
+                    if (!autoRun) {
+                        console.log("먼저 복리 수익 시뮬레이터를 실행하여 예상 토큰 수량을 계산해주세요.");
+                    }
+                    return;
+                }
+                
+                const wkeyPriceUsd = parseFloat(document.getElementById('wkeyPriceUsd').value);
+                const currency = document.getElementById('currencySelect').value;
+                
+                if (isNaN(wkeyPriceUsd) || wkeyPriceUsd <= 0) {
+                    document.getElementById('resultFiat').innerText = "가격 입력 필요";
+                    return;
+                }
+                
+                // 1. Calculate total value in USDT (WKEY price is in USDT)
+                const totalValueUsdt = finalTokenAmount * wkeyPriceUsd;
+                let displayValue;
+
+                if (currency === 'KRW') {
+                    // KRW 환산 시 USDT/KRW 환율 적용 (김프 반영 효과)
+                    const finalValueKrw = totalValueUsdt * USDT_TO_KRW_RATE;
+                    // KRW display: no decimal places, use proper locale string
+                    displayValue = finalValueKrw.toLocaleString('ko-KR', { maximumFractionDigits: 0 }) + " 원";
+                } else {
+                    // USDT display: 2 decimal places. USDT is 1:1 pegged to USD for simplicity here.
+                    displayValue = totalValueUsdt.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+                    // USD 기호($) 제거 및 USDT로 명확히 표시
+                    displayValue = displayValue.replace('$', '').trim() + " USDT";
+                }
+
+                document.getElementById('resultFiat').innerText = displayValue;
+            }
+
+            // 페이지 로드 시 초기 계산 실행
+            window.onload = function() {
+                // 초기 계산은 입력 필드가 로드된 후에만 실행되어야 합니다.
+                // DOMContentLoaded 대신 window.onload를 사용하여 안전하게 실행
+                calculateReward();
+            };
+        </script>
+
+        <!-- [수정]: 이모지 다시 적용 + 블록 강조 유지 -->
+        <h2>🚀 지금이 가장 빠른 기회입니다</h2>
+         <p>12시간마다 돌아오는 리베이스 타임은 멈추지 않습니다. 고민하는 시간에도 복리의 마법은 계속되고 있습니다. **Webkey DAO (웹키 다오)**는 지금 이 순간에도 성장 중이며, 초기 진입의 기회를 놓치지 마세요.</p>
+
+        <!-- 최종 CTA 및 연락처 블록 시작 (새로운 박스) -->
+        <div class="final-cta-block">
+
+            <!-- CTA 섹션 -->
+            <div class="cta-container">
+                <h3>Webkey DAO 참여하기 (Web3 지갑 연결 필요)</h3>
+                <p style="text-align: center;">아래 링크를 통해 가입 시 혜택을 받으실 수 있습니다.</p>
+                <br>
+                <a href="https://app.webkey.vip/#/myinvite?code=0xe7EF840519552109eDB82edE9bF3d2fAC9Bd4bA4" class="cta-button" target="_blank">
+                    바로 참여하기 (Click)
+                </a>
+                <div style="margin-top: 15px; font-size: 0.9rem; color: #555; text-align: center;">
+                    추천인 코드 자동 적용<br>
+                    <span style="background:#eee; padding:2px 5px; font-family:monospace;">0xe7EF...Bd4bA4</span>
+                </div>
+
+                <!-- Web3 지갑 경고 문구 수정 -->
+                <div class="warning-box">
+                    <strong>잠깐! Web3 지갑 연결 방법을 아시나요?</strong><br><br>
+                    Webkey DAO 참여를 위해서는 **메타마스크(MetaMask)** 등의 가상화폐 지갑 연결이 필수입니다.<br>
+                    지갑 사용법이 익숙하지 않으시거나 처음이신 분들은, <span class="highlight">별도의 학습이 필요</span>하거나 <span class="highlight">아래 연락처로 문의</span>해 주시면 상세히 안내해 드립니다.<br>
+                    <small style="color: #666;">* 준비 없이 진행 시 자산 분실의 위험이 있으니 Web3 환경에 대한 충분한 숙지 후 진행하세요.</small>
+                </div>
+            </div>
+
+            <!-- 연락처 및 푸터 -->
+            <div class="footer-contact">
+                <h3>문의하기</h3>
+                <p style="text-align: center;">참여 방법이 어렵거나 궁금한 점이 있으신가요?<br>언제든 편하게 연락주세요.</p>
+                
+                <div class="contact-card" style="text-align: center;">
+                    <div class="contact-number">Million : 010-4236-5319</div>
+                </div>
+            </div>
+
+        </div>
+        <!-- 최종 CTA 및 연락처 블록 종료 -->
+
+        <div style="text-align: center; margin-top: 40px; color: #999; font-size: 0.8rem;">
+            <p>본 포스팅은 정보 제공을 목적으로 하며 투자의 책임은 본인에게 있습니다.</p>
+        </div>
+
+        <!-- 검색 노출을 위한 키워드 (Hidden but readable by bots) -->
+        <div class="seo-tags">
+            #WebkeyDAO #웹키다오 #아누비재단 #AnubiFoundation #Defi #디파이 #스테이킹 #복리이자 #재테크 #경제적자유 #파이프라인 #부업 #투잡 #백만장자 #금융 #가상화폐 #블록체인 #소액투자
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
